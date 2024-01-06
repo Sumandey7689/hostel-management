@@ -37,7 +37,6 @@ function confirmDelete(userId) {
 
 $(document).ready(function () {
   $("#addUser").click(function () {
-
     // Load Payments Data
     $("#add-payment_due_date").val(
       new Date(new Date().setMonth(new Date().getMonth() + 1))
@@ -483,15 +482,19 @@ $(document).ready(function () {
     function () {
       var nameSearch = $("#nameSearch").val().toLowerCase();
       var roomSearch = $("#roomSearch").val().toLowerCase();
+      roomSearch = roomSearch.replace(/\s/g, "").replace(/[()]/g, "");
+
       var collegeOfficeSelect = $("#collegeOfficeSelect").val();
 
       $("tbody tr").each(function () {
         var name = $(this).find("td:eq(0) h6").text().toLowerCase();
-        var roomNumber = $(this).find("td:eq(3) span").text().toLowerCase();
+        var roomInfo = $(this).find("td:eq(3) span").text().toLowerCase();
+        roomInfo = roomInfo.replace(/\s/g, "").replace(/[()]/g, "");
+
         var locationType = $(this).find("td:eq(2) span").text().toLowerCase();
 
         var showRow =
-          name.includes(nameSearch) && roomNumber.includes(roomSearch);
+          name.includes(nameSearch) && roomInfo.includes(roomSearch);
 
         if (collegeOfficeSelect && collegeOfficeSelect !== "null") {
           showRow = showRow && locationType.includes(collegeOfficeSelect);

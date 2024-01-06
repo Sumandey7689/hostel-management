@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                 <div class="col-md-4">
                                     <div class="mb-2">
-                                        <label for="roomSearch" class="form-label">Search by Room Number:</label>
+                                        <label for="roomSearch" class="form-label">Search by Room Info:</label>
                                         <input type="text" class="form-control" id="roomSearch" placeholder="Enter room number">
                                     </div>
                                 </div>
@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Name</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Number</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Purpose Type</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Room No</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Room Info</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Address</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Payments</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Room</th>
@@ -287,7 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 </td>
 
                                                 <td class="align-middle text-center">
-                                                    <span class="text-secondary text-xs font-weight-bold"><?php echo $userRoomData ? $userRoomData[0]['room_number'] : ''; ?></span>
+                                                    <span class="text-secondary text-xs font-weight-bold"><?php echo $userRoomData ? $userRoomData[0]['room_number'] . " (" . $userRoomData[0]['room_type'] . ")" : ''; ?></span>
                                                 </td>
 
                                                 <!-- Address Status -->
