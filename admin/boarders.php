@@ -227,6 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label for="collegeOfficeSelect" class="form-label">Select a Purpose Type:</label>
                                     <select class="form-select" id="collegeOfficeSelect">
                                         <option value="" selected disabled>Select a Purpose Type</option>
+                                        <option value="school">School</option>
                                         <option value="college">College</option>
                                         <option value="office">Office</option>
                                     </select>
@@ -391,6 +392,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <div class="input-group">
                                         <select class="form-control" name="add-location_type" id="add-location_type">
                                             <option value="" selected disabled>Select a Purpose Type</option>
+                                            <option value="school">School</option>
                                             <option value="College">College</option>
                                             <option value="Office">Office</option>
                                         </select>
@@ -528,6 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <div class="input-group">
                                         <select class="form-control" name="location_type" id="location_type">
                                             <option value="" selected disabled>Select a Purpose Type</option>
+                                            <option value="school">School</option>
                                             <option value="College">College</option>
                                             <option value="Office">Office</option>
                                         </select>

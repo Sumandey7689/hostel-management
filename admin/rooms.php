@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Delete Room
     else if (isset($_POST['room_id'])) {
         if ((($dbReference->getData("tbl_rooms_data", "room_filled", ["room_id" => $_POST['room_id']]))[0]['room_filled']) == 0) {
-            print_r($dbReference->deleteData("tbl_rooms_data", ["room_id" => $_POST['room_id']]));
+            $dbReference->deleteData("tbl_rooms_data", ["room_id" => $_POST['room_id']]);
             header('location: rooms.php');
             exit;
         } else {
