@@ -57,8 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (!empty($_POST['add-room_type']) && !empty($_POST['add-room_category']) && !empty($_POST['add-room_number'])) {
                     $roomData = $dbReference->getData("tbl_rooms_data", "room_id, room_filled", ["room_type" => $_POST['add-room_type'], "room_category" => $_POST['add-room_category'], "room_number" => $_POST['add-room_number']]);
-          
-                    $dbReference->insertData("tbl_users_room", ["room_id" => $roomData[0]['room_id'], "user_id" => $currentUserId, "room_type" => $_POST['add-room_type'], "room_category" => $_POST['add-room_category'], "room_number" => $_POST['add-room_number']]);
+
+                    $dbReference->insertData("tbl_users_room", ["room_id" => $roomData[0]['room_id'], "user_id" => $currentUserId]);
                     $dbReference->updateData("tbl_rooms_data", ["room_filled" => ($roomData[0]['room_filled'] + 1)], ["room_id" => $roomData[0]['room_id']]);
                 }
 
@@ -108,16 +108,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $roomType = $_POST['room_type'];
             $room_category = $_POST['room_category'];
             $room_number = $_POST['room_number'];
-            $roomData = $dbReference->conditionGetData("tbl_rooms_data", "room_id, room_filled", "room_type = '$roomType' AND room_category = '$room_category' AND room_number = '$room_number'");
+            $roomData = $dbReference->getData("tbl_rooms_data", "room_id, room_filled", ["room_type" => $roomType, "room_category" => $room_category, "room_number" => $room_number]);
 
             $userCurrentData = $dbReference->getData("tbl_users_room", "*", ["user_id" => $_POST['user_id']]);
             if (!$userCurrentData) {
-                $dbReference->insertData("tbl_users_room", ["room_id" => $roomData[0]['room_id'], "user_id" => $_POST['user_id'], "room_type" => $_POST['room_type'], "room_category" => $_POST['room_category'], "room_number" => $_POST['room_number']]);
-                $dbReference->updateData("tbl_rooms_data", ["room_filled" => ($roomData[0]['room_filled'] + 1)], ["room_id" => $roomData[0]['room_id']]);
+                $roomInsertStatus = $dbReference->insertData("tbl_users_room", ["room_id" => $roomData[0]['room_id'], "user_id" => $_POST['user_id']]);
+
+                if ($roomInsertStatus) {
+                    $dbReference->updateData("tbl_rooms_data", ["room_filled" => ($roomData[0]['room_filled'] + 1)], ["room_id" => $roomData[0]['room_id']]);
+                }
             } else {
-                $dbReference->updateData("tbl_rooms_data", ["room_filled" => (($dbReference->getData("tbl_rooms_data", "room_filled", ["room_id" => $userCurrentData[0]['room_id']]))[0]['room_filled']) - 1], ["room_id" => $userCurrentData[0]['room_id']]);
-                $dbReference->updateData("tbl_users_room", ["room_id" => $roomData[0]['room_id'], "room_type" => $_POST['room_type'], "room_category" => $_POST['room_category'], "room_number" => $_POST['room_number']], ["user_id" => $_POST['user_id']]);
-                $dbReference->updateData("tbl_rooms_data", ["room_filled" => ($roomData[0]['room_filled'] + 1)], ["room_id" => $roomData[0]['room_id']]);
+                $roomId = $userCurrentData[0]['room_id'];
+                $updatedRoomFilled = $dbReference->getData("tbl_rooms_data", "room_filled", ["room_id" => $roomId])[0]['room_filled'] - 1;
+
+                if($updatedRoomFilled) {
+                    $dbReference->updateData("tbl_rooms_data", ["room_filled" => $updatedRoomFilled], ["room_id" => $roomId]);
+                }
+
+                $roomUpdateStatus = $dbReference->updateData("tbl_users_room", ["room_id" => $roomData[0]['room_id']], ["user_id" => $_POST['user_id']]);
+
+                if ($roomUpdateStatus) {
+                    $dbReference->updateData("tbl_rooms_data", ["room_filled" => $roomData[0]['room_filled'] + 1], ["room_id" => $roomData[0]['room_id']]);
+                }
                 $dbReference->insertData("tbl_room_tracking", ["user_id" => $_POST['user_id'], "room_type" => $_POST['room_type'], "room_category" => $_POST['room_category'], "room_number" => $_POST['room_number']], ["user_id" => $_POST['user_id']]);
             }
             header('location: boarders.php');
@@ -143,7 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dbReference->updateData("tbl_payments_history", ["active" => "0"], ["user_id" => $_POST['user_id']]);
 
         $roomInfo = $dbReference->getData("tbl_users_room", "*", ["user_id" => $_POST['user_id']]);
-        $roomId = ($dbReference->getData("tbl_users_room", "room_id", ["user_id" => $_POST['user_id']]))[0]['room_id'];
+        $roomId = $roomInfo[0]['room_id'];
+
         $roomFilled = ($dbReference->getData("tbl_rooms_data", "room_filled", ["room_id" => $roomId]))[0]['room_filled'] - 1;
         $dbReference->updateData("tbl_rooms_data", ["room_filled" => $roomFilled], ["room_id" => $roomId]);
 

@@ -52,6 +52,25 @@ class Database
         }
     }
 
+    public function joinTables($table1, $table2, $table1joinColumn, $table2joinColumn, $conditions)
+    {
+        $selectColumns = '*';
+
+        $whereConditions = $this->buildCondition($conditions);
+
+        $query = "SELECT $selectColumns FROM $table1
+                  JOIN $table2 ON $table1joinColumn = $table2joinColumn
+                  WHERE $whereConditions";
+
+        $result = $this->con->query($query);
+        if ($result) {
+            $arr = $result->fetch_all(MYSQLI_ASSOC);
+            return $arr;
+        } else {
+            return [];
+        }
+    }
+
     public function conditionGetData($table, $field = '*', $condition)
     {
         $sql = "SELECT $field FROM $table WHERE $condition";

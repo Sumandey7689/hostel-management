@@ -21,7 +21,7 @@ if (isset($_POST['user_id'])) {
     $userProfileData = $dbReference->getData("tbl_users", "*", ["user_id" => $_POST['user_id']]);
     $userAddressData = $dbReference->getData("tbl_addresses", "*", ["user_id" => $_POST['user_id']]);
     $userPaymentsData = $dbReference->getData("tbl_payments", "*", ["user_id" => $_POST['user_id']]);
-    $userRoomData = $dbReference->getData("tbl_users_room", "*", ["user_id" => $_POST['user_id']]);
+    $userRoomData = $dbReference->joinTables("tbl_users_room", "tbl_rooms_data", "tbl_users_room.room_id", "tbl_rooms_data.room_id", ["tbl_users_room.user_id" => $_POST['user_id']]);
 }
 
 ?>
