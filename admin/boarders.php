@@ -277,7 +277,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </thead>
                                     <tbody>
                                         <?php foreach ($userList as $user) :
-                                            $userRoomData = $dbReference->getData("tbl_users_room", "*", ["user_id" => $user['user_id']]); ?>
+                                            $userRoomData = $dbReference->joinTables("tbl_users_room", "tbl_rooms_data", "tbl_users_room.room_id", "tbl_rooms_data.room_id", ["tbl_users_room.user_id" => $user['user_id']]); ?>
                                             <tr>
                                                 <td>
                                                     <div class="d-flex px-2 py-1">
