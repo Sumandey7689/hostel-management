@@ -13,6 +13,7 @@ if ($userprofile != true) {
 $RoomDataExist = false;
 $RoomDeleteFalse = false;
 
+$dbReference->refreshRoomData();
 // Get Users Data
 $roomsData = $dbReference->getData("tbl_rooms_data");
 

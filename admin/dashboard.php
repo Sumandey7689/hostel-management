@@ -11,6 +11,7 @@ if ($userprofile != true) {
   header('location: login.php');
   exit;
 }
+$dbReference->refreshRoomData();
 
 $resetDate = ($dbReference->getData("tbl_config", "reset_date", ["id" => "1"]))[0]['reset_date'];
 $currentDate = date('Y-m-d');

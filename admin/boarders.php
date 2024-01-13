@@ -11,6 +11,7 @@ if ($userprofile != true) {
     exit;
 }
 
+$dbReference->refreshRoomData();
 // Get Users Data
 $userList = $dbReference->getData("tbl_users", "*", ["active" => "1"]);
 $error_msg = false;

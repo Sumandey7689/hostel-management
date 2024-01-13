@@ -71,6 +71,12 @@ class Database
         }
     }
 
+    public function refreshRoomData()
+    {
+        $sql = "UPDATE tbl_rooms_data SET room_filled = COALESCE((SELECT COUNT(*) FROM tbl_users_room WHERE tbl_users_room.room_id = tbl_rooms_data.room_id), 0)";
+        return $this->con->query($sql);
+    }
+
     public function conditionGetData($table, $field = '*', $condition)
     {
         $sql = "SELECT $field FROM $table WHERE $condition";
