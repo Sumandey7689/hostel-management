@@ -150,11 +150,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <div class="row p-3">
                                 <div class="col-md-3 mb-2">
-                                    <label for="roomTypeSelect" class="form-label">Select New or Old:</label>
+                                    <label for="roomTypeSelect" class="form-label">Select a Building Type:</label>
                                     <select class="form-select" id="roomTypeSelect">
                                         <option value="" selected disabled>Select a Building Type</option>
                                         <option value="new">New</option>
                                         <option value="old">Old</option>
+                                        <option value="gb">GB</option>
+                                        <option value="ar-1">AR-1</option>
+                                        <option value="ar-2">AR-2</option>
+                                        <option value="mm">MM</option>
+                                        <option value="an">AN</option>
+                                        <option value="tv">TV</option>
                                     </select>
                                 </div>
 
@@ -296,6 +302,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <option value="" selected disabled>Select Building Type</option>
                                     <option value="New">New</option>
                                     <option value="Old">Old</option>
+                                    <option value="GB">GB</option>
+                                    <option value="AR-1">AR-1</option>
+                                    <option value="AR-2">AR-2</option>
+                                    <option value="MM">MM</option>
+                                    <option value="AN">AN</option>
+                                    <option value="TV">TV</option>
                                 </select>
                             </div>
 

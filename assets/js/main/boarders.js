@@ -251,6 +251,27 @@ $(document).ready(function () {
     }
   }
 
+  function selectPopulateRoomTypeDropdown(
+    roomData,
+    room_type_dropdown,
+    selectRoomType
+  ) {
+    var dropdown = $(room_type_dropdown);
+    dropdown.empty();
+
+    for (var i = 0; i < roomData.length; i++) {
+      var option = $("<option></option>")
+        .attr("value", roomData[i].room_type)
+        .text(roomData[i].room_type);
+
+      if (roomData[i].room_type === selectRoomType) {
+        option.attr("selected", "selected");
+      }
+
+      dropdown.append(option);
+    }
+  }
+
   function populateRoomCategoryDropdown(roomData, room_category_dropdown) {
     console.log(room_category_dropdown);
     var dropdown = $(room_category_dropdown);
@@ -359,17 +380,23 @@ $(document).ready(function () {
         var roomTypeDropdown = $("#room_type_dropdown");
         roomTypeDropdown.empty();
 
-        if (roomData[0].room_type === "New") {
-          roomTypeDropdown.append(
-            '<option value="New" selected>New</option>' +
-              '<option value="Old">Old</option>'
-          );
-        } else if (roomData[0].room_type === "Old") {
-          roomTypeDropdown.append(
-            '<option value="New">New</option>' +
-              '<option value="Old" selected>Old</option>'
-          );
-        }
+        $.ajax({
+          type: "POST",
+          url: "../api/fetch_room_type.php",
+          success: function (roomType) {
+            var roomTypeData = JSON.parse(roomType);
+
+            selectPopulateRoomTypeDropdown(
+              roomTypeData,
+              "#room_type_dropdown",
+              roomData[0].room_type
+            );
+            $("#RoomModal").modal("show");
+          },
+          error: function (xhr) {
+            console.error(xhr.responseText);
+          },
+        });
 
         var roomCategoryDropdown = $("#room_category_dropdown");
         roomCategoryDropdown.empty();
