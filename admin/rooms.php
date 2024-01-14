@@ -19,12 +19,24 @@ $roomsData = $dbReference->getData("tbl_rooms_data");
 
 function customRoomSort($a, $b)
 {
-    if ($a['room_type'] === 'New' && $b['room_type'] !== 'New') {
-        return -1;
-    } else {
+    $customOrder = ['New', 'Old', 'AR-1', 'AR-2', 'MM', 'AN', 'TV'];
+
+    $aIndex = array_search($a['room_type'], $customOrder);
+    $bIndex = array_search($b['room_type'], $customOrder);
+
+    if ($aIndex === $bIndex) {
+        return 0;
+    }
+
+    if ($aIndex === false) {
         return 1;
     }
-    return strnatcmp($a['room_type'], $b['room_type']);
+
+    if ($bIndex === false) {
+        return -1;
+    }
+
+    return ($aIndex < $bIndex) ? -1 : 1;
 }
 
 usort($roomsData, 'customRoomSort');
