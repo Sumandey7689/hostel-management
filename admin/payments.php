@@ -14,25 +14,31 @@ if ($userprofile != true) {
 // Get Users Data
 $userList = $dbReference->getData("tbl_payments_months", "*", ["active" => "1"]);
 
+if (!isset($_SESSION['form_token'])) {
+    $_SESSION['form_token'] = md5(uniqid(rand(), true));
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Add Payments
-    if (isset($_POST['PaymentsSubmit'])) {
-        if (!empty($_POST['user_id']) && !empty($_POST['payment_date']) && !empty($_POST['payment_month']) && !empty($_POST['total_payment_amount'])) {
+    if (isset($_POST['form_token']) && $_POST['form_token'] === $_SESSION['form_token']) {
+        unset($_SESSION['form_token']);
+        if (isset($_POST['PaymentsSubmit'])) {
+            if (!empty($_POST['user_id']) && !empty($_POST['payment_date']) && !empty($_POST['payment_month']) && !empty($_POST['total_payment_amount'])) {
 
-            $baseDate = new DateTime(($dbReference->getData("tbl_payments", "payment_due_date", ["user_id" => $_POST['user_id']]))[0]['payment_due_date']);
-            if ($baseDate->format('Y-m') <= date('Y-m', strtotime($_POST['payment_date']))) {
-                $updatedDate = $baseDate->add(new DateInterval('P1M'))->format('Y-m-d');
-            } else {
-                $updatedDate = $baseDate->format('Y-m-d');
+                $baseDate = new DateTime(($dbReference->getData("tbl_payments", "payment_due_date", ["user_id" => $_POST['user_id']]))[0]['payment_due_date']);
+                if ($baseDate->format('Y-m') <= date('Y-m', strtotime($_POST['payment_date']))) {
+                    $updatedDate = $baseDate->add(new DateInterval('P1M'))->format('Y-m-d');
+                } else {
+                    $updatedDate = $baseDate->format('Y-m-d');
+                }
+                $dbReference->updateData("tbl_payments", ["payment_due_date" => $updatedDate], ["user_id" => $_POST["user_id"]]);
+
+                $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments']]);
+
+                $dbReference->updateData("tbl_payments_months", [strtolower($_POST['payment_month']) => "1"], ["user_id" => $_POST['user_id']]);
+                header('location: payments.php');
+                exit;
             }
-            $dbReference->updateData("tbl_payments", ["payment_due_date" => $updatedDate], ["user_id" => $_POST["user_id"]]);
-
-            $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments']]);
-
-            $dbReference->updateData("tbl_payments_months", [strtolower($_POST['payment_month']) => "1"], ["user_id" => $_POST['user_id']]);
-            header('location: payments.php');
-            exit;
         }
     }
 }
@@ -444,6 +450,7 @@ function getDueDateBoolean($dbReference, $userId)
                             <input type="hidden" name="user_id" id="user_id" value="">
                             <input type="hidden" name="payment_month" id="payment_month">
                             <input type="hidden" name="payment_color" id="color_name">
+                            <input type="hidden" name="form_token" value="<?php echo $_SESSION['form_token']; ?>">
 
                             <div class="form-group">
                                 <label for="payment_date">Payment Date:</label>

@@ -1,0 +1,12 @@
+DELETE tbl_payments_history
+FROM tbl_payments_history
+JOIN (
+    SELECT user_id, payment_date,
+           MIN(payment_id) AS min_id
+    FROM tbl_payments_history
+    GROUP BY user_id, payment_date
+    HAVING COUNT(*) > 1
+) AS duplicates
+ON tbl_payments_history.user_id = duplicates.user_id
+AND tbl_payments_history.payment_date = duplicates.payment_date
+AND tbl_payments_history.payment_id != duplicates.min_id;
