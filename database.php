@@ -52,15 +52,20 @@ class Database
         }
     }
 
-    public function joinTables($table1, $table2, $table1joinColumn, $table2joinColumn, $conditions)
+    public function joinTables($table1, $table2, $table1joinColumn, $table2joinColumn, $conditions, $orderByColumn = null, $orderByDirection = 'ASC')
     {
         $selectColumns = '*';
-
         $whereConditions = $this->buildCondition($conditions);
+        $orderByClause = '';
+
+        if ($orderByColumn) {
+            $orderByClause = "ORDER BY $orderByColumn $orderByDirection";
+        }
 
         $query = "SELECT $selectColumns FROM $table1
-                  JOIN $table2 ON $table1joinColumn = $table2joinColumn
-                  WHERE $whereConditions";
+              JOIN $table2 ON $table1joinColumn = $table2joinColumn
+              WHERE $whereConditions
+              $orderByClause";
 
         $result = $this->con->query($query);
         if ($result) {

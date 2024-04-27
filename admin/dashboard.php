@@ -143,7 +143,7 @@ if (isset($_POST['late_fine'])) {
                     <div class="numbers">
                       <p class="text-sm mb-2 text-uppercase font-weight-bold">Total Expenses</p>
                       <h5 class="font-weight-bolder">
-                        ₹<?php echo ($dbReference->getData("tbl_expenses", "SUM(amount) AS amount"))[0]['amount']; ?>
+                        ₹<?php echo (($dbReference->getData("tbl_expenses", "SUM(amount) AS amount"))[0]['amount']) ?? 0; ?>
                       </h5>
                     </div>
                   </div>
