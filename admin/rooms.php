@@ -19,7 +19,7 @@ $roomsData = $dbReference->getData("tbl_rooms_data");
 
 function customRoomSort($a, $b)
 {
-    $customOrder = ['New', 'Old', 'AR-1', 'AR-2', 'MM', 'AN', 'TV'];
+    $customOrder = ['New', 'Old', 'AR-1', 'AR-2', 'MM', 'AN', 'TV', 'DOC'];
 
     $aIndex = array_search($a['room_type'], $customOrder);
     $bIndex = array_search($b['room_type'], $customOrder);
@@ -173,6 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="mm">MM</option>
                                         <option value="an">AN</option>
                                         <option value="tv">TV</option>
+                                        <option value="doc">DOC</option>
                                     </select>
                                 </div>
 
@@ -320,6 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <option value="MM">MM</option>
                                     <option value="AN">AN</option>
                                     <option value="TV">TV</option>
+                                    <option value="DOC">DOC</option>
                                 </select>
                             </div>
 
