@@ -6,13 +6,15 @@ $helper = new Helper();
 
 $userprofile = $_SESSION['username'];
 $userAcessStatus = $_SESSION['acess'];
+$accountingYearId = $_SESSION['accountingYearId'];
+
 if ($userprofile != true) {
     header('location: login.php');
     exit;
 }
 
 // Get Users Data
-$userList = $dbReference->getData("tbl_payments_months", "*", ["active" => "1"]);
+$userList = $dbReference->getData("tbl_payments_months", "*", ["active" => "1", 'accounting_year_id' => $accountingYearId]);
 
 if (!isset($_SESSION['form_token'])) {
     $_SESSION['form_token'] = md5(uniqid(rand(), true));
@@ -22,30 +24,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Add Payments
     if (isset($_POST['form_token']) && $_POST['form_token'] === $_SESSION['form_token']) {
         unset($_SESSION['form_token']);
-        if (isset($_POST['PaymentsSubmit'])) {
-            if (!empty($_POST['user_id']) && !empty($_POST['payment_date']) && !empty($_POST['payment_month']) && !empty($_POST['total_payment_amount'])) {
+        // if (isset($_POST['PaymentsSubmit'])) {
+        if (!empty($_POST['user_id']) && !empty($_POST['payment_date']) && !empty($_POST['payment_month']) && !empty($_POST['total_payment_amount'])) {
 
-                $baseDate = new DateTime(($dbReference->getData("tbl_payments", "payment_due_date", ["user_id" => $_POST['user_id']]))[0]['payment_due_date']);
-                if ($baseDate->format('Y-m') <= date('Y-m', strtotime($_POST['payment_date']))) {
-                    $updatedDate = $baseDate->add(new DateInterval('P1M'))->format('Y-m-d');
-                } else {
-                    $updatedDate = $baseDate->format('Y-m-d');
-                }
-                $dbReference->updateData("tbl_payments", ["payment_due_date" => $updatedDate], ["user_id" => $_POST["user_id"]]);
-
-                $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments']]);
-
-                $dbReference->updateData("tbl_payments_months", [strtolower($_POST['payment_month']) => "1"], ["user_id" => $_POST['user_id']]);
-                header('location: payments.php');
-                exit;
+            $baseDate = new DateTime(($dbReference->getData("tbl_payments", "payment_due_date", ["user_id" => $_POST['user_id']]))[0]['payment_due_date']);
+            if ($baseDate->format('Y-m') <= date('Y-m', strtotime($_POST['payment_date']))) {
+                $updatedDate = $baseDate->add(new DateInterval('P1M'))->format('Y-m-d');
+            } else {
+                $updatedDate = $baseDate->format('Y-m-d');
             }
+            $dbReference->updateData("tbl_payments", ["payment_due_date" => $updatedDate], ["user_id" => $_POST["user_id"]]);
+
+            $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments'], 'accounting_year_id' => $accountingYearId]);
+
+            $dbReference->updateData("tbl_payments_months", [strtolower($_POST['payment_month']) => "1"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
+            header('location: payments.php');
+            exit;
         }
+        // }
     }
 }
 
 function getPaymentDate($dbReference, $user_id, $month)
 {
-    return $dbReference->getData("tbl_payments_history", "payment_date, payment_color", ["user_id" => $user_id, "payment_month" => $month], "payment_date");
+    $accountingYearId = $_SESSION['accountingYearId'];
+    return $dbReference->getData("tbl_payments_history", "payment_date, payment_color", ["user_id" => $user_id, "payment_month" => $month, 'accounting_year_id' => $accountingYearId], "payment_date");
 }
 
 function getDueDateBoolean($dbReference, $userId)
@@ -182,8 +185,13 @@ function getDueDateBoolean($dbReference, $userId)
                                     </div>
                                 </div>
                             </div>
+
+                            <div style="text-align: center;" id="processing">
+                                <img src="../assets/img/loader.gif" alt="" style="width: 60px;">
+                            </div>
+
                             <div class="table-responsive p-2">
-                                <table class="table align-items-center mb-0">
+                                <table class="table align-items-center mb-0" id="payments-table" style="display: none;">
                                     <thead>
                                         <tr>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Name</th>
@@ -445,7 +453,7 @@ function getDueDateBoolean($dbReference, $userId)
                         <h5 class="modal-title" id="exampleModalLabel">Payments Information</h5>
                     </div>
                     <div class="modal-body">
-                        <form method="post">
+                        <form method="post" id="payment_submit">
                             <!-- Hidden input for user ID -->
                             <input type="hidden" name="user_id" id="user_id" value="">
                             <input type="hidden" name="payment_month" id="payment_month">
@@ -523,6 +531,24 @@ function getDueDateBoolean($dbReference, $userId)
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
     <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+
+    <script>
+        $('#payment_submit').on('submit', function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Submit this payment?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                width: '450px', 
+            }).then(result => {
+                if (result.isConfirmed) this.submit();
+            });
+
+        });
+    </script>
 
 </body>
 

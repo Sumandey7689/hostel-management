@@ -4,6 +4,8 @@ require '../helper.php';
 $dbReference = new Database();
 $helper = new Helper();
 
+$accountingYearList = $dbReference->getData("tbl_accounting_year_master", "*");
+
 if (isset($_SESSION['username'])) {
     header('location: dashboard.php');
     exit;
@@ -22,7 +24,8 @@ if (isset($_POST['submitlogin'])) {
         if ($result[0]['status'] == 1) {
             $_SESSION['username'] = $username;
             $_SESSION['acess'] = $result[0]['acess'];
-            
+            $_SESSION['accountingYearId'] = $_POST['yearid'];
+
             header('location: dashboard.php');
             exit;
         } else if ($result[0]['status'] == 0) {
@@ -70,10 +73,12 @@ if (isset($_POST['submitlogin'])) {
                                 <div class="form-group">
                                     <input class="form-control" placeholder="Password" name="password" type="password" value="">
                                 </div>
-                                <div class="checkbox">
-                                    <label>
-                                        <input name="remember" type="checkbox" value="Remember Me">Remember Me
-                                    </label>
+                                <div class="form-group">
+                                    <select class="form-control" name="yearid">
+                                        <?php foreach ($accountingYearList as $key => $value): ?>
+                                            <option value="<?= $value['id'] ?>" <?= date('Y') == $value['year'] ? 'selected' : '' ?>><?= $value['year'] ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                                 <button type="submit" name="submitlogin" class="btn btn-lg btn-success btn-block">Login</button>
                             </fieldset>

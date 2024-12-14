@@ -6,6 +6,8 @@ $helper = new Helper();
 
 $userprofile = $_SESSION['username'];
 $userAcessStatus = $_SESSION['acess'];
+$accountingYearId = $_SESSION['accountingYearId'];
+
 if ($userprofile != true) {
     header('location: login.php');
     exit;
@@ -108,18 +110,18 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                     <label for="monthSelect" class="form-label">Search by Months:</label>
                                     <select class="form-select" id="monthSelect">
                                         <option value="" selected disabled>Select a Month</option>
-                                        <option value="-01-">January</option>
-                                        <option value="-02-">February</option>
-                                        <option value="-03-">March</option>
-                                        <option value="-04-">April</option>
-                                        <option value="-05-">May</option>
-                                        <option value="-06-">June</option>
-                                        <option value="-07-">July</option>
-                                        <option value="-08-">August</option>
-                                        <option value="-09-">September</option>
-                                        <option value="-10-">October</option>
-                                        <option value="-11-">November</option>
-                                        <option value="-12-">December</option>
+                                        <option value="-01-" <?= date('m') == '01' ? 'selected' : '' ?>>January</option>
+                                        <option value="-02-" <?= date('m') == '02' ? 'selected' : '' ?>>February</option>
+                                        <option value="-03-" <?= date('m') == '03' ? 'selected' : '' ?>>March</option>
+                                        <option value="-04-" <?= date('m') == '04' ? 'selected' : '' ?>>April</option>
+                                        <option value="-05-" <?= date('m') == '05' ? 'selected' : '' ?>>May</option>
+                                        <option value="-06-" <?= date('m') == '06' ? 'selected' : '' ?>>June</option>
+                                        <option value="-07-" <?= date('m') == '07' ? 'selected' : '' ?>>July</option>
+                                        <option value="-08-" <?= date('m') == '08' ? 'selected' : '' ?>>August</option>
+                                        <option value="-09-" <?= date('m') == '09' ? 'selected' : '' ?>>September</option>
+                                        <option value="-10-" <?= date('m') == '10' ? 'selected' : '' ?>>October</option>
+                                        <option value="-11-" <?= date('m') == '11' ? 'selected' : '' ?>>November</option>
+                                        <option value="-12-" <?= date('m') == '12' ? 'selected' : '' ?>>December</option>
                                     </select>
                                 </div>
 
@@ -127,20 +129,22 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                     <label for="yearSelect" class="form-label">Search by Years:</label>
                                     <select class="form-select" id="yearSelect">
                                         <option value="" selected disabled>Select a Year</option>
-                                        <option value="-2021">2021</option>
-                                        <option value="-2022">2022</option>
-                                        <option value="-2023">2023</option>
-                                        <option value="-2024">2024</option>
-                                        <option value="-2025">2025</option>
-                                        <option value="-2026">2026</option>
-                                        <option value="-2027">2027</option>
-                                        <option value="-2028">2028</option>
+                                        <option value="-2021" <?= date('Y') == 2021 ? 'selected' : '' ?>>2021</option>
+                                        <option value="-2022" <?= date('Y') == 2022 ? 'selected' : '' ?>>2022</option>
+                                        <option value="-2023" <?= date('Y') == 2023 ? 'selected' : '' ?>>2023</option>
+                                        <option value="-2024" <?= date('Y') == 2024  ? 'selected' : '' ?>>2024</option>
+                                        <option value="-2025" <?= date('Y') == 2025 ? 'selected' : '' ?>>2025</option>
                                     </select>
                                 </div>
                             </div>
 
+                            <div style="text-align: center;" id="processing">
+                                <img src="../assets/img/loader.gif" alt="" style="width: 60px;">
+                            </div>
+
+
                             <div class="table-responsive p-0">
-                                <table class="table align-items-center mb-0">
+                                <table class="table align-items-center mb-0" id="payments-table" style="display: none;">
                                     <thead>
                                         <tr>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
@@ -222,7 +226,19 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
 
     <script>
         $(document).ready(function() {
+            filterPayments();
             $("#monthSelect, #yearSelect").on("input change", function() {
+                $("#processing").show();
+                $("#payments-table").hide();
+
+                setTimeout(() => {
+                    filterPayments();
+                }, 1000);
+            });
+
+            function filterPayments() {
+                $("#processing").hide();
+
                 var monthSelect = $("#monthSelect").val();
                 var yearSelect = $("#yearSelect").val();
 
@@ -242,7 +258,9 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
 
                     $(this).toggle(showRow);
                 });
-            });
+
+                $("#payments-table").show();
+            }
         });
     </script>
 

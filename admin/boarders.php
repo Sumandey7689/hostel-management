@@ -6,6 +6,8 @@ $helper = new Helper();
 
 $userprofile = $_SESSION['username'];
 $userAcessStatus = $_SESSION['acess'];
+$accountingYearId = $_SESSION['accountingYearId'];
+
 if ($userprofile != true) {
     header('location: login.php');
     exit;
@@ -40,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($_POST['add-name']) && !empty($_POST['add-number']) && !empty($_POST['add-location_type']) && !empty($_POST['add-location_type']) && !empty($_POST['add-organizationname'])) {
                 $dbReference->insertData("tbl_users", ["name" => $_POST['add-name'], "number" => $_POST['add-number'], "location_type" => $_POST['add-location_type'], "subject" => $_POST['add-subject'], "year" => $_POST['add-year'], "semester" => $_POST['add-semester'], "organizationname" => $_POST['add-organizationname']]);
                 $currentUserId = ($dbReference->getData("tbl_users", "user_id", ["number" => $_POST['add-number']]))[0]['user_id'];
-                $dbReference->insertData("tbl_payments_months", ["user_id" => $currentUserId]);
+                $dbReference->insertData("tbl_payments_months", ["user_id" => $currentUserId, 'accounting_year_id' => $accountingYearId]);
 
                 if (!empty($_POST['add-street_address']) && !empty($_POST['add-city']) && !empty($_POST['add-state']) && !empty($_POST['add-postal_code'])) {
                     $dbReference->insertData("tbl_addresses", ["user_id" => $currentUserId, "street_address" => $_POST['add-street_address'], "city" => $_POST['add-city'], "state" => $_POST['add-state'], "postal_code" => $_POST['add-postal_code'], "country" => "india"]);
@@ -50,10 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $dbReference->insertData("tbl_payments", ["user_id" => $currentUserId, "payment_date" => $_POST['add-payment_date'], "payment_due_date" => $_POST['add-payment_due_date'], "total_payment_amount" => $_POST['add-total_payment_amount']]);
 
-                    $dbReference->insertData("tbl_payments_history", ["user_id" => $currentUserId, "payment_date" => $_POST['add-payment_date'], "total_payment_amount" => $_POST['add-total_payment_amount'], "payment_month" => (new DateTime($_POST['add-payment_date']))->format('F')]);
+                    $dbReference->insertData("tbl_payments_history", ["user_id" => $currentUserId, "payment_date" => $_POST['add-payment_date'], "total_payment_amount" => $_POST['add-total_payment_amount'], "payment_month" => (new DateTime($_POST['add-payment_date']))->format('F'), 'accounting_year_id' => $accountingYearId]);
 
                     $monthKey = strtolower((new DateTime($_POST['add-payment_date']))->format('F'));
-                    $dbReference->updateData("tbl_payments_months", ["$monthKey" => "1"], ["user_id" => $currentUserId]);
+                    $dbReference->updateData("tbl_payments_months", ["$monthKey" => "1"], ["user_id" => $currentUserId, 'accounting_year_id' => $accountingYearId]);
                 }
 
                 if (!empty($_POST['add-room_type']) && !empty($_POST['add-room_category']) && !empty($_POST['add-room_number'])) {
@@ -78,11 +80,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!($dbReference->getData("tbl_payments", "*", ["user_id" => $_POST['user_id']]))) {
                 $dbReference->insertData("tbl_payments", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "payment_due_date" => $_POST['payment_due_date'], "total_payment_amount" => $_POST['total_payment_amount']]);
 
-                $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => $_POST['total_payment_amount'], "payment_month" => (new DateTime($_POST['payment_date']))->format('F')]);
+                $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => $_POST['total_payment_amount'], "payment_month" => (new DateTime($_POST['payment_date']))->format('F'), 'accounting_year_id' => $accountingYearId]);
+
+                if (!($dbReference->getData("tbl_payments_months", "*", ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]))) {
+                    $dbReference->insertData("tbl_payments_months", ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
+                }
 
                 $monthKey = strtolower((new DateTime($_POST['payment_date']))->format('F'));
-                $dbReference->updateData("tbl_payments_months", ["$monthKey" => "1"], ["user_id" => $_POST['user_id']]);
+                $dbReference->updateData("tbl_payments_months", ["$monthKey" => "1"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
             } else {
+
+                if (!($dbReference->getData("tbl_payments_months", "*", ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]))) {
+                    $dbReference->insertData("tbl_payments_months", ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
+                }
+
+                
                 $dbReference->updateData("tbl_payments", ["payment_date" => $_POST['payment_date'], "payment_due_date" => $_POST['payment_due_date'], "total_payment_amount" => $_POST['total_payment_amount']], ["user_id" => $_POST['user_id']]);
             }
             header('location: boarders.php');
@@ -140,8 +152,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Restore User
     else if (isset($_POST['user_id']) && isset($_POST['restore'])) {
-        $dbReference->updateData("tbl_payments_months", ["active" => "1"], ["user_id" => $_POST['user_id']]);
-        $dbReference->updateData("tbl_payments_history", ["active" => "1"], ["user_id" => $_POST['user_id']]);
+        $dbReference->updateData("tbl_payments_months", ["active" => "1"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
+        $dbReference->updateData("tbl_payments_history", ["active" => "1"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
 
         $dbReference->deleteData("tbl_users_room", ["user_id" => $_POST['user_id']]);
         $dbReference->updateData("tbl_users", ["active" => "1"], ["user_id" => $_POST['user_id']]);
@@ -152,8 +164,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Delete User
     else if (isset($_POST['user_id'])) {
 
-        $dbReference->updateData("tbl_payments_months", ["active" => "0"], ["user_id" => $_POST['user_id']]);
-        $dbReference->updateData("tbl_payments_history", ["active" => "0"], ["user_id" => $_POST['user_id']]);
+        $dbReference->updateData("tbl_payments_months", ["active" => "0"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
+        $dbReference->updateData("tbl_payments_history", ["active" => "0"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
 
         $roomInfo = $dbReference->getData("tbl_users_room", "*", ["user_id" => $_POST['user_id']]);
         $roomId = $roomInfo[0]['room_id'];

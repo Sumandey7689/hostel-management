@@ -6,6 +6,8 @@ $helper = new Helper();
 
 $userprofile = $_SESSION['username'];
 $userAcessStatus = $_SESSION['acess'];
+$accountingYearId = $_SESSION['accountingYearId'];
+
 if ($userprofile != true) {
     header('location: login.php');
     exit;

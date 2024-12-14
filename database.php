@@ -121,6 +121,19 @@ class Database
         return $this->con->query($sql);
     }
 
+    public function insertDataGetId($table, $data)
+    {
+        $fields = implode(',', array_keys($data));
+        $values = "'" . implode("','", array_values($data)) . "'";
+        $sql = "INSERT INTO $table ($fields) VALUES ($values)";
+
+        if ($this->con->query($sql)) {
+            return $this->con->insert_id;
+        } else {
+            return ['error' => $this->con->error];
+        }
+    }
+
     public function deleteData($table, $condition_arr)
     {
         $sql = "DELETE FROM $table WHERE " . $this->buildCondition($condition_arr);

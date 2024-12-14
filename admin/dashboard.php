@@ -6,8 +6,9 @@ $helper = new Helper();
 
 $userprofile = $_SESSION['username'];
 $userAcessStatus = $_SESSION['acess'];
+$accountingYearId = $_SESSION['accountingYearId'];
 
-if ($userprofile != true) {
+if ($userprofile != true && !$accountingYearId) {
   header('location: login.php');
   exit;
 }
@@ -18,10 +19,20 @@ $currentDate = date('Y-m-d');
 $query = "SUM(room_capacity) AS total_room_capacity,SUM(room_filled) AS total_room_filled,(SUM(room_capacity) - SUM(room_filled)) AS available_room_capacity";
 
 if (($currentDate >= $resetDate)) {
-  $dbReference->resetData("tbl_payments_months", ["january" => 0, "february" => 0, "march" => 0, " april" => 0, "may" => 0, "june" => 0, "july" => 0, "august" => 0, "september" => 0, "october" => 0, "november" => 0, "december" => 0]);
-  $dbReference->resetData("tbl_payments_history", ["payment_color" => NULL]);
-  $newResetDate = date('Y-m-d', strtotime($resetDate . ' +1 year'));
-  $dbReference->updateData("tbl_config", ["reset_date" => $newResetDate], ["id" => 1]);
+  // $dbReference->resetData("tbl_payments_months", ["january" => 0, "february" => 0, "march" => 0, " april" => 0, "may" => 0, "june" => 0, "july" => 0, "august" => 0, "september" => 0, "october" => 0, "november" => 0, "december" => 0]);
+  // $dbReference->resetData("tbl_payments_history", ["payment_color" => NULL]);
+
+  $insertedId = $dbReference->insertDataGetId("tbl_accounting_year_master", ["year" => date('Y')]);
+  if ($insertedId) {
+    $result = $dbReference->getConnection()->query("INSERT INTO tbl_payments_months (user_id, active, accounting_year_id) SELECT user_id, active, $insertedId AS accounting_year_id FROM tbl_payments_months WHERE accounting_year_id = ($insertedId - 1);");
+    if ($result) {
+      $newResetDate = date('Y-m-d', strtotime($resetDate . ' +1 year'));
+      $dbReference->updateData("tbl_config", ["reset_date" => $newResetDate], ["id" => 1]);
+
+      header('location: logout.php');
+      exit;
+    }
+  }
 }
 
 if (isset($_POST["password1"]) && isset($_POST["password2"])) {
@@ -121,7 +132,7 @@ if (isset($_POST['late_fine'])) {
                     <div class="numbers">
                       <p class="text-sm mb-2 text-uppercase font-weight-bold">Payments</p>
                       <h5 class="font-weight-bolder">
-                        ₹<?php echo ($dbReference->getData("tbl_payments_history", "SUM(total_payment_amount) AS total_payment_amount", ["active" => "1"]))[0]['total_payment_amount']; ?>
+                        ₹<?php echo ($dbReference->getData("tbl_payments_history", "SUM(total_payment_amount) AS total_payment_amount", ["active" => "1", 'accounting_year_id' => $accountingYearId]))[0]['total_payment_amount'] ?? 0; ?>
                       </h5>
                     </div>
                   </div>

@@ -103,40 +103,53 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
+  getFilterData();
   $("#monthSelect, #nameSearch, #numberSearch").on("input change", function () {
-    var selectedMonth = $("#monthSelect").val();
-    var selectedPaymentType = "pending";
-    var nameSearchText = $("#nameSearch").val().toLowerCase();
-    var numberSearchText = $("#numberSearch").val().toLowerCase();
+    $("#processing").show();
+    $("#payments-table").hide();
 
-    $("tbody tr").each(function () {
-      var showRow = true;
-
-      var nameValue = $(this).find("td:eq(0) .text-sm").text().toLowerCase();
-      var dueDateFire = $(this).find("td:eq(16) .duehit").text();
-      var numberValue = $(this).find("td:eq(1) .text-sm").text().toLowerCase();
-
-      if (
-        selectedMonth !== "" &&
-        selectedMonth !== null &&
-        selectedPaymentType !== "" &&
-        selectedPaymentType !== null
-      ) {
-        var availability = $(this)
-          .find("td:eq(" + selectedMonth + ") .badge-sm")
-          .text()
-          .toLowerCase();
-        showRow =
-          showRow &&
-          availability.includes(selectedPaymentType) &&
-          dueDateFire.includes("true");
-      }
-
-      showRow =
-        showRow &&
-        nameValue.includes(nameSearchText) &&
-        numberValue.includes(numberSearchText);
-      $(this).toggle(showRow);
-    });
+    setTimeout(() => {
+      getFilterData();
+    }, 1000);
   });
 });
+
+function getFilterData() {
+  $("#processing").hide();
+  var selectedMonth = $("#monthSelect").val();
+  var selectedPaymentType = "pending";
+  var nameSearchText = $("#nameSearch").val().toLowerCase();
+  var numberSearchText = $("#numberSearch").val().toLowerCase();
+
+  $("tbody tr").each(function () {
+    var showRow = true;
+
+    var nameValue = $(this).find("td:eq(0) .text-sm").text().toLowerCase();
+    var dueDateFire = $(this).find("td:eq(16) .duehit").text();
+    var numberValue = $(this).find("td:eq(1) .text-sm").text().toLowerCase();
+
+    if (
+      selectedMonth !== "" &&
+      selectedMonth !== null &&
+      selectedPaymentType !== "" &&
+      selectedPaymentType !== null
+    ) {
+      var availability = $(this)
+        .find("td:eq(" + selectedMonth + ") .badge-sm")
+        .text()
+        .toLowerCase();
+      showRow =
+        showRow &&
+        availability.includes(selectedPaymentType) &&
+        dueDateFire.includes("true");
+    }
+
+    showRow =
+      showRow &&
+      nameValue.includes(nameSearchText) &&
+      numberValue.includes(numberSearchText);
+    $(this).toggle(showRow);
+  });
+
+  $("#payments-table").show();
+}

@@ -10,3 +10,12 @@ JOIN (
 ON tbl_payments_history.user_id = duplicates.user_id
 AND tbl_payments_history.payment_date = duplicates.payment_date
 AND tbl_payments_history.payment_id != duplicates.min_id;
+
+
+INSERT INTO `tbl_payments_months` (
+    user_id, january, february, march, april, may, june, july, august, september, october, november, december, active, accounting_year_id
+)
+SELECT 
+    user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, active, 2 AS accounting_year_id
+FROM `tbl_payments_months`
+WHERE accounting_year_id = 1;

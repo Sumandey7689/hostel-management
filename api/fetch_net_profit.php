@@ -6,6 +6,9 @@ $dbReference = new Database();
 $helper = new Helper();
 
 $userAccessStatus = $_SESSION['acess'];
+$accountingYearId = $_SESSION['accountingYearId'];
+
+$yearMaster = $dbReference->getData("tbl_accounting_year_master", "*", ["id" => $accountingYearId])[0];
 
 if ($userAccessStatus != 1) {
     echo json_encode(['monthly_profits' => null]);
@@ -13,7 +16,7 @@ if ($userAccessStatus != 1) {
 }
 
 $monthlyProfits = [];
-$currentYear = date('Y');
+$currentYear = $yearMaster['year'];
 
 for ($month = 1; $month <= 12; $month++) {
     $startOfMonth = date("Y-m-01", strtotime("$currentYear-$month-01"));
@@ -27,7 +30,7 @@ for ($month = 1; $month <= 12; $month++) {
         FROM
             tbl_payments_history
         WHERE
-            active = 1 AND payment_date BETWEEN '$startOfMonth' AND '$endOfMonth'
+            accounting_year_id = $accountingYearId AND payment_date BETWEEN '$startOfMonth' AND '$endOfMonth'
     ),
     0
     ) - COALESCE(
