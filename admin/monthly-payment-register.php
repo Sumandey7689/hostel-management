@@ -58,7 +58,7 @@ $pdf->AddPage();
 
 // Add compact header
 $pdf->SetFont('helvetica', 'B', 14);
-$pdf->Cell(0, 8, 'HOSTEL MANAGEMENT', 0, 1, 'C');
+$pdf->Cell(0, 8, 'SHANTI GIRLS HOSTEL', 0, 1, 'C');
 $pdf->SetFont('helvetica', 'B', 12);
 $pdf->Cell(0, 6, 'Payment Register', 0, 1, 'C');
 

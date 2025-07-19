@@ -64,7 +64,7 @@ function drawDottedLine($pdf, $y) {
 
 // Header with decorative elements
 $pdf->SetFont('helvetica', 'B', 16);
-$pdf->Cell(0, 8, 'HOSTEL MANAGEMENT', 0, 1, 'C');
+$pdf->Cell(0, 8, 'SHANTI GIRLS HOSTEL', 0, 1, 'C');
 $pdf->SetFont('helvetica', 'B', 14);
 $pdf->Cell(0, 6, 'PAYMENT RECEIPT', 0, 1, 'C');
 drawDottedLine($pdf, $pdf->GetY());
@@ -75,6 +75,9 @@ $pdf->SetFont('helvetica', '', 11);
 $pdf->Cell(35, 5, 'Receipt No:', 0, 0);
 $pdf->Cell(150, 5, $data['payment_id'], 0, 1);
 
+$pdf->Cell(35, 5, 'Month:', 0, 0);
+$pdf->Cell(150, 5, $data['payment_month'], 0, 1);
+
 $pdf->Cell(35, 5, 'Date:', 0, 0);
 $pdf->Cell(150, 5, date('d/m/Y', strtotime($data['payment_date'])), 0, 1);
 
@@ -83,6 +86,18 @@ $pdf->Cell(150, 5, $data['name'], 0, 1);
 
 $pdf->Cell(35, 5, 'Mobile:', 0, 0);
 $pdf->Cell(150, 5, $data['number'], 0, 1);
+
+
+// QR Code with proper A4 positioning
+$qrData = "Receipt: " . $data['payment_id'] . 
+          "\nName: " . $data['name'] . 
+          "\nMobile: " . $data['number'] . 
+          "\nMonth: " . $data['payment_month'] . 
+          "\nDate: " . date('d/m/Y', strtotime($data['payment_date'])) . 
+          "\nAmount: Rs." . $data['total_payment_amount'];
+
+$pdf->write2DBarcode($qrData, 'QRCODE,R', 170, $pdf->GetY() - 26, 50, 25);
+
 
 $pdf->Ln(2);
 drawDottedLine($pdf, $pdf->GetY());
