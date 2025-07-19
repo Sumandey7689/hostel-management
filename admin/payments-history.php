@@ -138,6 +138,14 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                 </div>
                             </div>
 
+                            <div class="row p-3">
+                                <div class="col-md-12 text-end">
+                                    <a href="javascript:void(0)" onclick="generatePDF()" class="btn btn-primary">
+                                        <i class="fas fa-file-pdf me-2"></i>Generate PDF
+                                    </a>
+                                </div>
+                            </div>
+
                             <div style="text-align: center;" id="processing">
                                 <img src="../assets/img/loader.gif" alt="" style="width: 60px;">
                             </div>
@@ -213,6 +221,19 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
             </div>
         </div>
     </main>
+
+    <script>
+        function generatePDF() {
+            const month = $('#monthSelect').val() || '';
+            const year = $('#yearSelect').val() || '';
+
+            const cleanMonth = month.replace(/-/g, '');
+            const cleanYear = year.replace(/-/g, '');
+
+            const formattedDate = cleanMonth && cleanYear ? `${cleanMonth}/${cleanYear}` : '';
+            window.open(`monthly-payment-register.php?date=${formattedDate}`, '_blank');
+        }
+    </script>
 
     <!-- Core JS Files -->
     <script src="../assets/js/core/popper.min.js"></script>
