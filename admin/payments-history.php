@@ -106,7 +106,7 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                         </div>
                         <div class="card-body px-0 pt-0 pb-2">
                             <div class="row p-3">
-                                <div class="col-md-6 mb-2">
+                                <div class="col-md-5 mb-2">
                                     <label for="monthSelect" class="form-label">Search by Months:</label>
                                     <select class="form-select" id="monthSelect">
                                         <option value="" selected disabled>Select a Month</option>
@@ -124,8 +124,7 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                         <option value="-12-" <?= date('m') == '12' ? 'selected' : '' ?>>December</option>
                                     </select>
                                 </div>
-
-                                <div class="col-md-6 mb-2">
+                                <div class="col-md-5 mb-2">
                                     <label for="yearSelect" class="form-label">Search by Years:</label>
                                     <select class="form-select" id="yearSelect">
                                         <option value="" selected disabled>Select a Year</option>
@@ -136,15 +135,16 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                         <option value="-2025" <?= date('Y') == 2025 ? 'selected' : '' ?>>2025</option>
                                     </select>
                                 </div>
-                            </div>
-
-                            <div class="row p-3">
-                                <div class="col-md-12 text-end">
-                                    <a href="javascript:void(0)" onclick="generatePDF()" class="btn btn-primary">
-                                        <i class="fas fa-file-pdf me-2"></i>Generate PDF
-                                    </a>
+                                <div class="col-md-2 mb-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <a href="javascript:void(0)" onclick="generatePDF()" class="btn btn-primary">
+                                            <i class="fas fa-file-pdf me-2"></i>Generate PDF
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+
 
                             <div style="text-align: center;" id="processing">
                                 <img src="../assets/img/loader.gif" alt="" style="width: 60px;">
@@ -167,6 +167,7 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                                 Color</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                                 Additional Comments</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -209,6 +210,14 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                                     <span class="text-secondary text-xs font-weight-bold">
                                                         <?php echo $data['additional_comments']; ?>
                                                     </span>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <a href="payment-receipt.php?id=<?php echo $data['payment_id']; ?>"
+                                                        target="_blank"
+                                                        class="btn btn-sm btn-info"
+                                                        title="Download Receipt">
+                                                        <i class="fas fa-file-pdf"></i>
+                                                    </a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
