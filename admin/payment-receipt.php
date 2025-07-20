@@ -120,15 +120,15 @@ $pdf->Circle($circleX + 2.5, $circleY, 2.5, 0, 360, 'F');
 $pdf->Cell(5, 5, '', 0, 0);
 $pdf->Cell(145, 5, '', 0, 1, 'L');
 
-// QR Code with proper A4 positioning
-$qrData = "Receipt: " . $data['payment_id'] . 
-          "\nName: " . $data['name'] . 
-          "\nMobile: " . $data['number'] . 
-          "\nMonth: " . $data['payment_month'] . 
-          "\nDate: " . date('d/m/Y', strtotime($data['payment_date'])) . 
-          "\nAmount: Rs." . $data['total_payment_amount'];
+// // QR Code with proper A4 positioning
+// $qrData = "Receipt: " . $data['payment_id'] . 
+//           "\nName: " . $data['name'] . 
+//           "\nMobile: " . $data['number'] . 
+//           "\nMonth: " . $data['payment_month'] . 
+//           "\nDate: " . date('d/m/Y', strtotime($data['payment_date'])) . 
+//           "\nAmount: Rs." . $data['total_payment_amount'];
 
-$pdf->write2DBarcode($qrData, 'QRCODE,R', 170, $pdf->GetY() - 28, 50, 25);
+// $pdf->write2DBarcode($qrData, 'QRCODE,R', 170, $pdf->GetY() - 28, 50, 25);
 
 $pdf->Ln(2);
 drawDottedLine($pdf, $pdf->GetY());
