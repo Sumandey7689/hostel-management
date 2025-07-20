@@ -47,14 +47,14 @@ if (empty($transactionData)) {
 
 $data = $transactionData[0];
 
-// Create A4 format PDF
-$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+// Create half A4 format PDF
+$pdf = new TCPDF('L', 'mm', array(210, 120), true, 'UTF-8', false); // A4 width x half A4 height
 $pdf->SetCreator('Hostel Management System');
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $pdf->SetMargins(15, 15, 15);
-// A4 page height is automatically set when creating the PDF with 'A4' format
 $pdf->AddPage();
+
 // Function to draw decorative dotted line
 function drawDottedLine($pdf, $y) {
     $pdf->SetLineStyle(array('width' => 0.3, 'dash' => '2,2'));
@@ -87,6 +87,38 @@ $pdf->Cell(150, 5, $data['name'], 0, 1);
 $pdf->Cell(35, 5, 'Mobile:', 0, 0);
 $pdf->Cell(150, 5, $data['number'], 0, 1);
 
+// Add color status indicator as circle
+$pdf->Cell(35, 5, 'Color:', 0, 0);
+$statusColor = strtolower($data['payment_color']);
+switch ($statusColor) {
+    case 'paid':
+        $pdf->SetFillColor(45, 206, 137); // Green
+        break;
+    case 'pending':
+        $pdf->SetFillColor(255, 165, 0); // Orange
+        break;
+    case 'gray':
+        $pdf->SetFillColor(128, 128, 128); // Gray
+        break;
+    case 'pink':
+        $pdf->SetFillColor(255, 192, 203); // Pink
+        break;
+    case 'red':
+        $pdf->SetFillColor(255, 0, 0); // Red
+        break;
+    case 'blue':
+        $pdf->SetFillColor(0, 0, 255); // Blue
+        break;
+    default:
+        $pdf->SetFillColor(45, 206, 137); // Default green
+}
+
+// Draw circle status indicator
+$circleX = $pdf->GetX();
+$circleY = $pdf->GetY() + 2.5;
+$pdf->Circle($circleX + 2.5, $circleY, 2.5, 0, 360, 'F');
+$pdf->Cell(5, 5, '', 0, 0);
+$pdf->Cell(145, 5, '', 0, 1, 'L');
 
 // QR Code with proper A4 positioning
 $qrData = "Receipt: " . $data['payment_id'] . 
@@ -96,8 +128,7 @@ $qrData = "Receipt: " . $data['payment_id'] .
           "\nDate: " . date('d/m/Y', strtotime($data['payment_date'])) . 
           "\nAmount: Rs." . $data['total_payment_amount'];
 
-$pdf->write2DBarcode($qrData, 'QRCODE,R', 170, $pdf->GetY() - 26, 50, 25);
-
+$pdf->write2DBarcode($qrData, 'QRCODE,R', 170, $pdf->GetY() - 28, 50, 25);
 
 $pdf->Ln(2);
 drawDottedLine($pdf, $pdf->GetY());
