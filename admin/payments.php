@@ -35,7 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $dbReference->updateData("tbl_payments", ["payment_due_date" => $updatedDate], ["user_id" => $_POST["user_id"]]);
 
-            $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments'], 'accounting_year_id' => $accountingYearId]);
+            $receiptNo = $helper->generateReceiptNo($accountingYearId, $dbReference);
+
+            $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments'], 'accounting_year_id' => $accountingYearId, 'receipt_no' => $receiptNo]);
 
             $dbReference->updateData("tbl_payments_months", [strtolower($_POST['payment_month']) => "1"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
             header('location: payments.php');
@@ -542,7 +544,7 @@ function getDueDateBoolean($dbReference, $userId)
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
-                width: '450px', 
+                width: '450px',
             }).then(result => {
                 if (result.isConfirmed) this.submit();
             });

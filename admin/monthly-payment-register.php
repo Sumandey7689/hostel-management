@@ -68,18 +68,15 @@ $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 $pdf->SetCreator('Hostel Management System');
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
-$pdf->SetMargins(10, 10, 10, 10);
+$pdf->SetMargins(10, 10, 10, 10); // Set equal margins on all sides
 $pdf->AddPage();
 
 // Get page width excluding margins
-$pageWidth = $pdf->getPageWidth() - 20; // 20mm total margins (10mm each side)
+$pageWidth = $pdf->getPageWidth() - 20;
 
-// Calculate proportional widths
-$widthTotal = 180; // Original total width
-$widths = [10, 45, 25, 20, 15, 35, 30]; // Original widths
-$newWidths = array_map(function ($w) use ($widthTotal, $pageWidth) {
-    return ($w / $widthTotal) * $pageWidth;
-}, $widths);
+// Adjust column widths to fit page
+$widths = [10, 40, 20, 20, 20, 20, 25, 35]; // Modified widths
+$headers = ['SL', 'Name', 'Mobile', 'Receipt No.', 'Date', 'Status', 'Comments', 'Amount'];
 
 // Header
 $pdf->SetFont('helvetica', 'B', 12);
@@ -94,8 +91,6 @@ if ($month && $year) {
 
 $pdf->Ln(2);
 
-$headers = ['SL', 'Name', 'Mobile', 'Date', 'Status', 'Comments', 'Amount'];
-
 $totalAmount = 0;
 $rowCount = 0;
 
@@ -104,8 +99,9 @@ foreach ($dateGrouped as $date => $group) {
 
     // Table headers
     $pdf->SetFillColor(240, 240, 240);
+    $x = $pdf->GetX();
     foreach ($headers as $i => $header) {
-        $pdf->Cell($newWidths[$i], 6, $header, 1, 0, 'C', true);
+        $pdf->Cell($widths[$i], 6, $header, 1, 0, 'C', true);
     }
     $pdf->Ln();
 
@@ -117,54 +113,51 @@ foreach ($dateGrouped as $date => $group) {
 
         if ($pdf->GetY() > 270) {
             $pdf->AddPage();
-            // Reset fill color for headers on new page
+            $pdf->SetFont('helvetica', 'B', 9);
             $pdf->SetFillColor(240, 240, 240);
             foreach ($headers as $i => $header) {
-                $pdf->Cell($newWidths[$i], 6, $header, 1, 0, 'C', true);
+                $pdf->Cell($widths[$i], 6, $header, 1, 0, 'C', true);
             }
             $pdf->Ln();
+            $pdf->SetFont('helvetica', '', 8);
         }
 
-        // Draw status circle with color
-        $statusColor = strtolower($data['payment_color']);
-        $circleX = $pdf->GetX() + $newWidths[0] + $newWidths[1] + $newWidths[2] + $newWidths[3] + 7.5;
-        $circleY = $pdf->GetY() + 2.5;
-        $radius = 2;
-
-        switch ($statusColor) {
-            case 'paid':
-                $pdf->SetFillColor(45, 206, 137); // Green
-                break;
-            case 'pending':
-                $pdf->SetFillColor(255, 165, 0); // Orange
-                break;
-            case 'gray':
-                $pdf->SetFillColor(128, 128, 128); // Gray
-                break;
-            case 'pink':
-                $pdf->SetFillColor(255, 192, 203); // Pink
-                break;
-            case 'red':
-                $pdf->SetFillColor(255, 0, 0); // Red
-                break;
-            case 'blue':
-                $pdf->SetFillColor(0, 0, 255); // Blue
-                break;
-            default:
-                $pdf->SetFillColor(45, 206, 137); // Default green
-        }
-
-        $pdf->Cell($newWidths[0], 5, $rowCount, 1, 0, 'C');
-        $pdf->Cell($newWidths[1], 5, $data['name'], 1, 0, 'L');
-        $pdf->Cell($newWidths[2], 5, $data['number'], 1, 0, 'C');
-        $pdf->Cell($newWidths[3], 5, date('d/m/Y', strtotime($data['payment_date'])), 1, 0, 'C');
+        $pdf->Cell($widths[0], 5, $rowCount, 1, 0, 'C');
+        $pdf->Cell($widths[1], 5, $data['name'], 1, 0, 'L');
+        $pdf->Cell($widths[2], 5, $data['number'], 1, 0, 'C');
+        $pdf->Cell($widths[3], 5, $data['receipt_no'], 1, 0, 'C');
+        $pdf->Cell($widths[4], 5, date('d/m/Y', strtotime($data['payment_date'])), 1, 0, 'C');
 
         // Status cell with circle
-        $pdf->Cell($newWidths[4], 5, '', 1, 0, 'C');
-        $pdf->Circle($circleX, $circleY, $radius, 0, 360, 'F');
+        $statusX = $pdf->GetX();
+        $statusY = $pdf->GetY();
+        $pdf->Cell($widths[5], 5, '', 1, 0, 'C');
+        
+        // Draw status circle
+        $statusColor = strtolower($data['payment_color']);
+        switch ($statusColor) {
+            case 'paid':
+                $pdf->SetFillColor(45, 206, 137); break;
+            case 'pending':
+                $pdf->SetFillColor(255, 165, 0); break;
+            case 'gray':
+                $pdf->SetFillColor(128, 128, 128); break;
+            case 'pink':
+                $pdf->SetFillColor(255, 192, 203); break;
+            case 'red':
+                $pdf->SetFillColor(255, 0, 0); break;
+            case 'blue':
+                $pdf->SetFillColor(0, 0, 255); break;
+            default:
+                $pdf->SetFillColor(45, 206, 137);
+        }
+        
+        $circleX = $statusX + ($widths[5] / 2);
+        $circleY = $statusY + 2.5;
+        $pdf->Circle($circleX, $circleY, 2, 0, 360, 'F');
 
-        $pdf->Cell($newWidths[5], 5, $data['additional_comments'], 1, 0, 'C');
-        $pdf->Cell($newWidths[6], 5, 'Rs. ' . number_format($data['total_payment_amount'], 2), 1, 0, 'R');
+        $pdf->Cell($widths[6], 5, $data['additional_comments'], 1, 0, 'C');
+        $pdf->Cell($widths[7], 5, 'Rs. ' . number_format($data['total_payment_amount'], 2), 1, 0, 'R');
         $pdf->Ln();
 
         $totalAmount += $data['total_payment_amount'];
@@ -173,8 +166,8 @@ foreach ($dateGrouped as $date => $group) {
     // Daily total
     $pdf->SetFont('helvetica', 'B', 8);
     $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell($pageWidth - 30, 6, 'Date Wise Collection: ' . date('d/m/Y', strtotime($date)), 1, 0, 'L');
-    $pdf->Cell(30, 6, 'Rs. ' . number_format($group['total'], 2), 1, 1, 'R');
+    $pdf->Cell($pageWidth - 35, 6, 'Date Wise Collection: ' . date('d/m/Y', strtotime($date)), 1, 0, 'L');
+    $pdf->Cell(35, 6, 'Rs. ' . number_format($group['total'], 2), 1, 1, 'R');
     $pdf->Ln(2);
 }
 
@@ -182,8 +175,8 @@ foreach ($dateGrouped as $date => $group) {
 $pdf->SetFont('helvetica', 'B', 9);
 $pdf->SetFillColor(240, 240, 240);
 $pdf->Cell($pageWidth, 6, 'Summary', 1, 1, 'C', true);
-$pdf->Cell($pageWidth - 30, 6, 'Total Collection', 1, 0, 'L');
-$pdf->Cell(30, 6, 'Rs. ' . number_format($totalAmount, 2), 1, 1, 'R');
+$pdf->Cell($pageWidth - 25, 6, 'Total Collection', 1, 0, 'L');
+$pdf->Cell(25, 6, 'Rs. ' . number_format($totalAmount, 2), 1, 1, 'R');
 
 if ($month && $year) {
     $monthName = date('F', mktime(0, 0, 0, $month, 1));

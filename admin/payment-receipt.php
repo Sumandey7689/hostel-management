@@ -73,7 +73,7 @@ $pdf->Ln(3);
 // Receipt Details in compact format
 $pdf->SetFont('helvetica', '', 11);
 $pdf->Cell(35, 5, 'Receipt No:', 0, 0);
-$pdf->Cell(150, 5, $data['payment_id'], 0, 1);
+$pdf->Cell(150, 5, $data['receipt_no'], 0, 1);
 
 $pdf->Cell(35, 5, 'Month:', 0, 0);
 $pdf->Cell(150, 5, $data['payment_month'], 0, 1);
