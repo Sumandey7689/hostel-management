@@ -13,6 +13,10 @@ if ($userprofile != true) {
     exit;
 }
 
+$recentPaymentId = $_SESSION['recent_payment_id'] ?? null;
+unset($_SESSION['recent_payment_id']);
+
+
 // Get Users Data
 $userList = $dbReference->getData("tbl_payments_months", "*", ["active" => "1", 'accounting_year_id' => $accountingYearId]);
 
@@ -37,9 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $receiptNo = $helper->generateReceiptNo($accountingYearId, $dbReference);
 
-            $dbReference->insertData("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments'], 'accounting_year_id' => $accountingYearId, 'receipt_no' => $receiptNo]);
+            $paymentId = $dbReference->insertDataGetId("tbl_payments_history", ["user_id" => $_POST['user_id'], "payment_date" => $_POST['payment_date'], "total_payment_amount" => ($_POST['total_payment_amount']) + ($_POST['late_payment_fees']), "payment_month" => $_POST['payment_month'], "payment_color" => $_POST['payment_color'], "additional_comments" => $_POST['additional_comments'], 'accounting_year_id' => $accountingYearId, 'receipt_no' => $receiptNo]);
 
             $dbReference->updateData("tbl_payments_months", [strtolower($_POST['payment_month']) => "1"], ["user_id" => $_POST['user_id'], 'accounting_year_id' => $accountingYearId]);
+            $_SESSION['recent_payment_id'] = $paymentId;
             header('location: payments.php');
             exit;
         }
@@ -551,6 +556,24 @@ function getDueDateBoolean($dbReference, $userId)
 
         });
     </script>
+
+    <?php if (!empty($recentPaymentId)) : ?>
+        <script>
+            Swal.fire({
+                title: 'Payment Successful!',
+                text: 'Do you want to print the receipt?',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Print',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open('payment-receipt.php?id=<?php echo $recentPaymentId; ?>', '_blank');
+                }
+            });
+        </script>
+    <?php endif; ?>
+
 
 </body>
 

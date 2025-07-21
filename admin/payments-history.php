@@ -96,7 +96,7 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
     <main class="main-content position-relative border-radius-lg ">
         <?php include '../includes/header.php' ?>
         <div class="container-fluid py-4">
-            <div class="row">
+            <div class="row" style="zoom: 90%;">
                 <div class="col-12">
                     <div class="card mb-4">
                         <div class="card-header pb-0">
@@ -138,7 +138,7 @@ $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users",
                                 <div class="col-md-2 mb-2">
                                     <label class="form-label">&nbsp;</label>
                                     <div class="d-grid">
-                                        <a href="javascript:void(0)" onclick="generatePDF()" class="btn btn-primary">
+                                        <a href="javascript:void(0)" onclick="generatePDF()" class="btn btn-primary" style="font-size: 10px;">
                                             <i class="fas fa-file-pdf me-2"></i>Generate PDF
                                         </a>
                                     </div>

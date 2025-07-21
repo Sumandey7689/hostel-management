@@ -8,6 +8,7 @@ if (!file_exists($tcpdfPath)) {
 }
 require $tcpdfPath;
 
+
 $dbReference = new Database();
 $helper = new Helper();
 
@@ -15,7 +16,7 @@ $userprofile = $_SESSION['username'];
 $userAcessStatus = $_SESSION['acess'];
 $accountingYearId = $_SESSION['accountingYearId'];
 
-if ($userprofile != true) {
+if (!$userprofile) {
     header('location: login.php');
     exit;
 }
@@ -32,7 +33,7 @@ if ($date) {
     }
 }
 
-$conditions = ["tbl_payments_history.active " => 1];
+$conditions = ["tbl_payments_history.active" => 1];
 if ($month && $year) {
     $conditions["DATE_FORMAT(tbl_payments_history.payment_date, '%m')"] = $month;
     $conditions["DATE_FORMAT(tbl_payments_history.payment_date, '%Y')"] = $year;
@@ -51,15 +52,15 @@ $transactionData = $dbReference->joinTables(
 // Group transactions by date
 $dateGrouped = [];
 foreach ($transactionData as $transaction) {
-    $date = date('Y-m-d', strtotime($transaction['payment_date']));
-    if (!isset($dateGrouped[$date])) {
-        $dateGrouped[$date] = [
+    $dateKey = date('Y-m-d', strtotime($transaction['payment_date']));
+    if (!isset($dateGrouped[$dateKey])) {
+        $dateGrouped[$dateKey] = [
             'transactions' => [],
             'total' => 0
         ];
     }
-    $dateGrouped[$date]['transactions'][] = $transaction;
-    $dateGrouped[$date]['total'] += $transaction['total_payment_amount'];
+    $dateGrouped[$dateKey]['transactions'][] = $transaction;
+    $dateGrouped[$dateKey]['total'] += $transaction['total_payment_amount'];
 }
 
 ksort($dateGrouped);
@@ -68,15 +69,14 @@ $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 $pdf->SetCreator('Hostel Management System');
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
-$pdf->SetMargins(10, 10, 10, 10); // Set equal margins on all sides
+$pdf->SetMargins(10, 10, 10, 10);
 $pdf->AddPage();
 
-// Get page width excluding margins
-$pageWidth = $pdf->getPageWidth() - 20;
+$pageWidth = $pdf->getPageWidth() - 15; // 190mm for A4 with 10mm margins
 
-// Adjust column widths to fit page
-$widths = [10, 40, 20, 20, 20, 20, 25, 35]; // Modified widths
-$headers = ['SL', 'Name', 'Mobile', 'Receipt No.', 'Date', 'Status', 'Comments', 'Amount'];
+// Adjusted widths to total 190mm
+$widths = [10, 35, 20, 25, 25, 15, 15, 30, 20];
+$headers = ['SL', 'Name', 'Mobile', 'Receipt No.', 'Payment Date', 'Month', 'Status', 'Comments', 'Amount'];
 
 // Header
 $pdf->SetFont('helvetica', 'B', 12);
@@ -88,7 +88,6 @@ if ($month && $year) {
     $monthName = date('F', mktime(0, 0, 0, $month, 1));
     $pdf->Cell(0, 5, "$monthName $year", 0, 1, 'C');
 }
-
 $pdf->Ln(2);
 
 $totalAmount = 0;
@@ -99,18 +98,16 @@ foreach ($dateGrouped as $date => $group) {
 
     // Table headers
     $pdf->SetFillColor(240, 240, 240);
-    $x = $pdf->GetX();
     foreach ($headers as $i => $header) {
         $pdf->Cell($widths[$i], 6, $header, 1, 0, 'C', true);
     }
     $pdf->Ln();
-
-    // Reset for data
     $pdf->SetFont('helvetica', '', 8);
 
     foreach ($group['transactions'] as $data) {
         $rowCount++;
 
+        // Page break if needed
         if ($pdf->GetY() > 270) {
             $pdf->AddPage();
             $pdf->SetFont('helvetica', 'B', 9);
@@ -127,37 +124,30 @@ foreach ($dateGrouped as $date => $group) {
         $pdf->Cell($widths[2], 5, $data['number'], 1, 0, 'C');
         $pdf->Cell($widths[3], 5, $data['receipt_no'], 1, 0, 'C');
         $pdf->Cell($widths[4], 5, date('d/m/Y', strtotime($data['payment_date'])), 1, 0, 'C');
+        $pdf->Cell($widths[5], 5, $data['payment_month'], 1, 0, 'C');
 
-        // Status cell with circle
+        // Status cell
         $statusX = $pdf->GetX();
         $statusY = $pdf->GetY();
-        $pdf->Cell($widths[5], 5, '', 1, 0, 'C');
-        
-        // Draw status circle
+        $pdf->Cell($widths[6], 5, '', 1, 0, 'C');
+
         $statusColor = strtolower($data['payment_color']);
         switch ($statusColor) {
-            case 'paid':
-                $pdf->SetFillColor(45, 206, 137); break;
-            case 'pending':
-                $pdf->SetFillColor(255, 165, 0); break;
-            case 'gray':
-                $pdf->SetFillColor(128, 128, 128); break;
-            case 'pink':
-                $pdf->SetFillColor(255, 192, 203); break;
-            case 'red':
-                $pdf->SetFillColor(255, 0, 0); break;
-            case 'blue':
-                $pdf->SetFillColor(0, 0, 255); break;
-            default:
-                $pdf->SetFillColor(45, 206, 137);
+            case 'paid':   $pdf->SetFillColor(45, 206, 137); break;
+            case 'pending':$pdf->SetFillColor(255, 165, 0);  break;
+            case 'gray':   $pdf->SetFillColor(128, 128, 128); break;
+            case 'pink':   $pdf->SetFillColor(255, 192, 203); break;
+            case 'red':    $pdf->SetFillColor(255, 0, 0);     break;
+            case 'blue':   $pdf->SetFillColor(0, 0, 255);     break;
+            default:       $pdf->SetFillColor(45, 206, 137);
         }
-        
-        $circleX = $statusX + ($widths[5] / 2);
+
+        $circleX = $statusX + ($widths[6] / 2);
         $circleY = $statusY + 2.5;
         $pdf->Circle($circleX, $circleY, 2, 0, 360, 'F');
 
-        $pdf->Cell($widths[6], 5, $data['additional_comments'], 1, 0, 'C');
-        $pdf->Cell($widths[7], 5, 'Rs. ' . number_format($data['total_payment_amount'], 2), 1, 0, 'R');
+        $pdf->Cell($widths[7], 5, $data['additional_comments'], 1, 0, 'L');
+        $pdf->Cell($widths[8], 5, 'Rs. ' . number_format($data['total_payment_amount'], 2), 1, 0, 'R');
         $pdf->Ln();
 
         $totalAmount += $data['total_payment_amount'];
@@ -171,7 +161,7 @@ foreach ($dateGrouped as $date => $group) {
     $pdf->Ln(2);
 }
 
-// Summary
+// Final summary
 $pdf->SetFont('helvetica', 'B', 9);
 $pdf->SetFillColor(240, 240, 240);
 $pdf->Cell($pageWidth, 6, 'Summary', 1, 1, 'C', true);
