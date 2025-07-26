@@ -48,7 +48,16 @@ $yearMaster = $dbReference->getData("tbl_accounting_year_master", "*", ["id" => 
                     <span class="nav-link-text ms-1">Payments History</span>
                 </a>
             </li>
-
+            <!-- Student Wise Collection Report -->
+            <li class="nav-item">
+                <a class="nav-link" href="../admin/student-collection.php">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fa fa-history navbar-brand-img text-primary text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Student Wise Collection</span>
+                </a>
+            </li>
+            <!-- Student Wise Collection Report -->
             <li class="nav-item">
                 <a class="nav-link" href="../admin/rooms.php">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

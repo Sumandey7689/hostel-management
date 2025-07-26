@@ -20,25 +20,23 @@ if (!$userprofile) {
     header('location: login.php');
     exit;
 }
-
-$date = isset($_GET['date']) ? $_GET['date'] : '';
-$month = '';
-$year = '';
+$student = isset($_GET['student']) ? intval($_GET['student']) : '';
+$year = isset($_GET['year']) ? $_GET['year'] : '';
+$date = $student && $year ? $student . '/' . $year : '';
 
 if ($date) {
     $parts = explode('/', $date);
     if (count($parts) == 2) {
-        $month = $parts[0];
+        $student = intval($parts[0]);
         $year = $parts[1];
     }
 }
 
 $conditions = ["tbl_payments_history.active" => 1];
-if ($month && $year) {
-    $conditions["DATE_FORMAT(tbl_payments_history.payment_date, '%m')"] = $month;
+if ($student && $year) {
+    $conditions["tbl_payments_history.user_id"] = $student;
     $conditions["DATE_FORMAT(tbl_payments_history.payment_date, '%Y')"] = $year;
 }
-
 $transactionData = $dbReference->joinTables(
     "tbl_payments_history",
     "tbl_users",
@@ -48,21 +46,22 @@ $transactionData = $dbReference->joinTables(
     "payment_date",
     "ASC"
 );
-
-$dateGrouped = [];
+$studentGrouped = [];
 foreach ($transactionData as $transaction) {
-    $dateKey = date('Y-m-d', strtotime($transaction['payment_date']));
-    if (!isset($dateGrouped[$dateKey])) {
-        $dateGrouped[$dateKey] = [
+    $studentId = $transaction['user_id'];
+    if (!isset($studentGrouped[$studentId])) {
+        $studentGrouped[$studentId] = [
             'transactions' => [],
-            'total' => 0
+            'total' => 0,
+            'name' => $transaction['name'],
+            'number' => $transaction['number']
         ];
     }
-    $dateGrouped[$dateKey]['transactions'][] = $transaction;
-    $dateGrouped[$dateKey]['total'] += $transaction['total_payment_amount'];
+    $studentGrouped[$studentId]['transactions'][] = $transaction;
+    $studentGrouped[$studentId]['total'] += $transaction['total_payment_amount'];
 }
 
-ksort($dateGrouped);
+ksort($studentGrouped);
 
 $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 $pdf->SetCreator('Hostel Management System');
@@ -71,37 +70,39 @@ $pdf->setPrintFooter(false);
 $pdf->SetMargins(10, 10, 10, 10);
 $pdf->AddPage();
 
-$pageWidth = $pdf->getPageWidth() - 15;
+$pageWidth = $pdf->getPageWidth() - 15; 
 
-$widths = [10, 35, 20, 25, 25, 15, 15, 30, 20];
-$headers = ['SL', 'Name', 'Mobile', 'Receipt No.', 'Payment Date', 'Month', 'Status', 'Comments', 'Amount'];
+$widths = [15, 30, 30, 25, 15, 15, 30, 35];
+$headers = ['SL', 'Receipt No.', 'Payment Date', 'Month', 'Year', 'Status', 'Comments', 'Amount'];
 
 $pdf->SetFont('helvetica', 'B', 12);
 $pdf->Cell(0, 6, 'SHANTI GIRLS HOSTEL', 0, 1, 'C');
 $pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(0, 5, 'Payment Register', 0, 1, 'C');
+$pdf->Cell(0, 5, 'Student Payment Register', 0, 1, 'C');
 
-if ($month && $year) {
-    $monthName = date('F', mktime(0, 0, 0, $month, 1));
-    $pdf->Cell(0, 5, "$monthName $year", 0, 1, 'C');
+if ($year) {
+    $pdf->Cell(0, 5, "Year: $year", 0, 1, 'C');
 }
 $pdf->Ln(2);
 
 $totalAmount = 0;
 $rowCount = 0;
 
-foreach ($dateGrouped as $date => $group) {
+foreach ($studentGrouped as $studentId => $student) {
     $pdf->SetFont('helvetica', 'B', 9);
-
+    $pdf->SetFillColor(220, 220, 220);
+    
+    $pdf->Cell($pageWidth, 6, 'Student Name: ' . $student['name'] . ' | Mobile: ' . $student['number'], 1, 1, 'L', true);
+    
     $pdf->SetFillColor(240, 240, 240);
     foreach ($headers as $i => $header) {
         $pdf->Cell($widths[$i], 6, $header, 1, 0, 'C', true);
     }
     $pdf->Ln();
     $pdf->SetFont('helvetica', '', 8);
-
-    foreach ($group['transactions'] as $data) {
-        $rowCount++;
+    $studentRowCount = 0;
+    foreach ($student['transactions'] as $data) {
+        $studentRowCount++;
 
         if ($pdf->GetY() > 270) {
             $pdf->AddPage();
@@ -114,16 +115,15 @@ foreach ($dateGrouped as $date => $group) {
             $pdf->SetFont('helvetica', '', 8);
         }
 
-        $pdf->Cell($widths[0], 5, $rowCount, 1, 0, 'C');
-        $pdf->Cell($widths[1], 5, $data['name'], 1, 0, 'L');
-        $pdf->Cell($widths[2], 5, $data['number'], 1, 0, 'C');
-        $pdf->Cell($widths[3], 5, $data['receipt_no'], 1, 0, 'C');
-        $pdf->Cell($widths[4], 5, date('d/m/Y', strtotime($data['payment_date'])), 1, 0, 'C');
-        $pdf->Cell($widths[5], 5, $data['payment_month'], 1, 0, 'C');
+        $pdf->Cell($widths[0], 5, $studentRowCount, 1, 0, 'C');
+        $pdf->Cell($widths[1], 5, $data['receipt_no'], 1, 0, 'C');
+        $pdf->Cell($widths[2], 5, date('d/m/Y', strtotime($data['payment_date'])), 1, 0, 'C');
+        $pdf->Cell($widths[3], 5, $data['payment_month'], 1, 0, 'C');
+        $pdf->Cell($widths[4], 5, date('Y', strtotime($data['payment_date'])), 1, 0, 'C');
 
         $statusX = $pdf->GetX();
         $statusY = $pdf->GetY();
-        $pdf->Cell($widths[6], 5, '', 1, 0, 'C');
+        $pdf->Cell($widths[5], 5, '', 1, 0, 'C');
 
         $statusColor = strtolower($data['payment_color']);
         switch ($statusColor) {
@@ -136,21 +136,20 @@ foreach ($dateGrouped as $date => $group) {
             default:       $pdf->SetFillColor(45, 206, 137);
         }
 
-        $circleX = $statusX + ($widths[6] / 2);
+        $circleX = $statusX + ($widths[5] / 2);
         $circleY = $statusY + 2.5;
         $pdf->Circle($circleX, $circleY, 2, 0, 360, 'F');
 
-        $pdf->Cell($widths[7], 5, $data['additional_comments'], 1, 0, 'L');
-        $pdf->Cell($widths[8], 5, 'Rs. ' . number_format($data['total_payment_amount'], 2), 1, 0, 'R');
+        $pdf->Cell($widths[6], 5, $data['additional_comments'], 1, 0, 'L');
+        $pdf->Cell($widths[7], 5, 'Rs. ' . number_format($data['total_payment_amount'], 2), 1, 0, 'R');
         $pdf->Ln();
 
         $totalAmount += $data['total_payment_amount'];
     }
-
     $pdf->SetFont('helvetica', 'B', 8);
     $pdf->SetFillColor(240, 240, 240);
-    $pdf->Cell($pageWidth - 35, 6, 'Date Wise Collection: ' . date('d/m/Y', strtotime($date)), 1, 0, 'L');
-    $pdf->Cell(35, 6, 'Rs. ' . number_format($group['total'], 2), 1, 1, 'R');
+    $pdf->Cell($pageWidth - 35, 6, 'Student Total Collection', 1, 0, 'L');
+    $pdf->Cell(35, 6, 'Rs. ' . number_format($student['total'], 2), 1, 1, 'R');
     $pdf->Ln(2);
 }
 
@@ -160,11 +159,5 @@ $pdf->Cell($pageWidth, 6, 'Summary', 1, 1, 'C', true);
 $pdf->Cell($pageWidth - 35, 6, 'Total Collection', 1, 0, 'L');
 $pdf->Cell(35, 6, 'Rs. ' . number_format($totalAmount, 2), 1, 1, 'R');
 
-if ($month && $year) {
-    $monthName = date('F', mktime(0, 0, 0, $month, 1));
-    $filename = "payment_register_{$monthName}_{$year}.pdf";
-} else {
-    $filename = "payment_register.pdf";
-}
-
+$filename = "student_payment_register.pdf";
 $pdf->Output($filename, 'I');
