@@ -16,8 +16,6 @@ if ($userprofile != true) {
 // Get Users Data
 $transactionData = $dbReference->joinTables("tbl_payments_history", "tbl_users", "tbl_payments_history.user_id", "tbl_users.user_id", ["tbl_payments_history.active " => 1], "payment_id", "DESC");
 $userList = $dbReference->getData("tbl_users", "*", ["active" => "1"]);
-// $helper->pre($userList);
-// exit;
 ?>
 
 <!DOCTYPE html>
@@ -39,6 +37,8 @@ $userList = $dbReference->getData("tbl_users", "*", ["active" => "1"]);
     <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
     <!-- CSS Files -->
     <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
         /* Custom CSS styles for the table */
@@ -88,6 +88,77 @@ $userList = $dbReference->getData("tbl_users", "*", ["active" => "1"]);
         .selected {
             border: 2px solid black;
         }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select2-container .select2-selection--multiple {
+            min-height: 38px;
+            border: 1px solid #d2d6da;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #5e72e4;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            padding: -1px 8px;
+            margin: 2px;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: white;
+            margin-right: 10px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #d2d6da;
+            border-radius: 0.5rem;
+        }
+
+        .select2-search__field {
+            padding: 8px !important;
+        }
+
+        .select2-results__option {
+            padding: 8px 12px;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #5e72e4 !important;
+        }
+
+        .select2-container .select2-search--inline .select2-search__field {
+            box-sizing: border-box;
+            border: none;
+            font-size: 100%;
+            margin-top: -10px;
+            margin-left: 5px;
+            padding: 0;
+            max-width: 100%;
+            resize: none;
+            height: 30px;
+            vertical-align: bottom;
+            font-family: sans-serif;
+            overflow: hidden;
+            word-break: keep-all;
+        }
+
+        .select2-dropdown.select2-dropdown--below {
+            width: 31.3% !important;
+            max-width: 41.666667%;
+            min-width: 250px;
+        }
+
+        @media (max-width: 768px) {
+            .select2-dropdown.select2-dropdown--below {
+                width: 100% !important;
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -109,12 +180,15 @@ $userList = $dbReference->getData("tbl_users", "*", ["active" => "1"]);
                         <div class="card-body px-0 pt-0 pb-2">
                             <div class="row p-3">
                                 <div class="col-md-5 mb-2">
-                                    <label for="studentSelect" class="form-label">Search by Student:</label>
-                                    <select class="form-select" id="studentSelect" onchange="filterPayments()">
-                                        <?php foreach ($userList as $user) : ?>
-                                            <option value="<?= $user['user_id'] ?>"><?= $user['name'] ?> - <?= $user['number'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <label for="studentSelect" class="form-label fw-bold">Search by Student:</label>
+                                    <div class="select2-container">
+                                        <select class="form-select select2-dropdown" name="students[]" id="studentSelect" multiple="multiple" style="width: 100%;">
+                                            <option></option>
+                                            <?php foreach ($userList as $user) : ?>
+                                                <option value="<?= $user['user_id'] ?>"><?= $user['name'] ?> - <?= $user['number'] ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="col-md-5 mb-2">
                                     <label for="yearSelect" class="form-label">Search by Years:</label>
@@ -151,6 +225,19 @@ $userList = $dbReference->getData("tbl_users", "*", ["active" => "1"]);
             window.open(`student-payment-pdf.php?student=${student}&year=${year}`, '_blank');
         }
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#studentSelect').select2({
+                placeholder: "Select students",
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    </script>
 
     <!-- Core JS Files -->
     <script src="../assets/js/core/popper.min.js"></script>
@@ -158,7 +245,7 @@ $userList = $dbReference->getData("tbl_users", "*", ["active" => "1"]);
     <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
     <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
 
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script> -->
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

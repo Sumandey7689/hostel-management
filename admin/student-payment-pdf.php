@@ -20,24 +20,18 @@ if (!$userprofile) {
     header('location: login.php');
     exit;
 }
-$student = isset($_GET['student']) ? intval($_GET['student']) : '';
+$studentIds = isset($_GET['student']) ? explode(',', $_GET['student']) : [];
 $year = isset($_GET['year']) ? $_GET['year'] : '';
-$date = $student && $year ? $student . '/' . $year : '';
 
-if ($date) {
-    $parts = explode('/', $date);
-    if (count($parts) == 2) {
-        $student = intval($parts[0]);
-        $year = $parts[1];
-    }
-}
+$studentIds = array_filter(array_map('intval', $studentIds));
 
 $conditions = ["tbl_payments_history.active" => 1];
-if ($student && $year) {
-    $conditions["tbl_payments_history.user_id"] = $student;
+if (!empty($studentIds) && $year) {
+    $conditions["tbl_payments_history.user_id"] = ['IN', $studentIds];
     $conditions["DATE_FORMAT(tbl_payments_history.payment_date, '%Y')"] = $year;
 }
-$transactionData = $dbReference->joinTables(
+
+$transactionData = $dbReference->joinTablesInCondition(
     "tbl_payments_history",
     "tbl_users",
     "tbl_payments_history.user_id",

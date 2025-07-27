@@ -160,6 +160,41 @@ class Database
         return $this->con->real_escape_string($str);
     }
 
+    public function joinTablesInCondition($table1, $table2, $table1joinColumn, $table2joinColumn, $conditions, $orderByColumn = null, $orderByDirection = 'ASC')
+    {
+        $selectColumns = '*';
+        $whereClause = '';
+
+        if (!empty($conditions)) {
+            $whereParts = [];
+            foreach ($conditions as $key => $value) {
+                if (is_array($value) && isset($value[0]) && $value[0] === 'IN' && is_array($value[1])) {
+                    $inValues = array_map(function ($v) {
+                        return $this->get_safe_str($v);
+                    }, $value[1]);
+                    $whereParts[] = "$key IN ('" . implode("','", $inValues) . "')";
+                } else {
+                    $whereParts[] = "$key='" . $this->get_safe_str($value) . "'";
+                }
+            }
+            $whereClause = "WHERE " . implode(' AND ', $whereParts);
+        }
+
+        $orderByClause = $orderByColumn ? "ORDER BY $orderByColumn $orderByDirection" : '';
+
+        $query = "SELECT $selectColumns 
+              FROM $table1
+              JOIN $table2 ON $table1joinColumn = $table2joinColumn
+              $whereClause
+              $orderByClause";
+
+        $result = $this->con->query($query);
+        if ($result) {
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+        return [];
+    }
+
     private function buildCondition($condition_arr)
     {
         $conditions = [];
